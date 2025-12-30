@@ -7,6 +7,8 @@ import knowledgeItem from "./models/knowledgeItem.js";
 
 const app = express();
 app.use(express.json());
+
+
 app.use("/user", userRouter);
 
 app.use("/user/:id/notes", knowledgeItemRouter);

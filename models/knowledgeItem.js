@@ -22,9 +22,20 @@ const knowledgeItemSchema = mongoose.Schema(
 
   {
     timestamps: true,
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+      },
+      virtuals: true,
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.__v;
+      },
+      virtuals: true,
+    },
   }
 );
-
 
 /**
  * @type {import("mongoose").Model<any>}

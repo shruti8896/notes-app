@@ -15,7 +15,7 @@ userRouter.get("/", async (req, res) => {
 userRouter.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const user = await  User.findById(id);
+    const user = await User.findById(id).populate("notes");
     console.log(user);
     if (!user) {
       return res.status(404).json({ message: "user not found!!" });
@@ -23,7 +23,9 @@ userRouter.get("/:id", async (req, res) => {
 
     return res.status(200).send(user);
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong!!", error });
+    res
+      .status(500)
+      .json({ message: "Something went wrong!!", error: error.message });
   }
 });
 
