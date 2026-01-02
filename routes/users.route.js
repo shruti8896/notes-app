@@ -1,6 +1,7 @@
 import express from "express";
 import User from "../models/user.js";
 import mongoose from "mongoose";
+import { hashPassword } from "../utils/hash.js";
 
 export const userRouter = express.Router();
 
@@ -33,7 +34,7 @@ userRouter.get("/:id", async (req, res) => {
 
 userRouter.post("/", async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, password } = req.body;
     let nameExists = false;
     let emailExists = false;
     if (!name || !email) {
@@ -65,8 +66,9 @@ userRouter.post("/", async (req, res) => {
     if (emailExists) {
       return res.status(500).send("email id already exists!!!");
     }
-
-    const user = await User.create({ name, email });
+    const hashedPwd = await hashPassword(password);
+    console.log(hashedPwd);
+    const user = await User.create({ name, email, password: hashedPwd });
     res.status(201).json({
       message: "User created successfully",
       user,
