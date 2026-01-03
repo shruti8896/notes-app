@@ -1,19 +1,23 @@
 import { comparePassword, hashPassword } from "../utils/hash.js";
-import { userRouter } from "../routes/users.route.js";
 import User from "../models/user.js";
-import bcrypt from "bcrypt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  verifyAccessToken,
+} from "../utils/token.js";
 
 export async function registerUser(data) {
   try {
     const { name, email, password, role } = data;
     let nameExists = false;
     let emailExists = false;
-    if (!name || !email) {
-      return res.status(400).json({ message: "Name and email are required" });
+    if (!name || !email || !password) {
+      throw new Error("Name and email are required");
     }
 
     const existingUser = await User.find({
-      $or: [{ name: name }, { email: email }],
+      $or: [{ name }, { email }],
     });
 
     existingUser.forEach((user) => {
@@ -42,7 +46,7 @@ export async function registerUser(data) {
     const user = await User.create({ name, email, password: hashedPwd });
     return user;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -53,13 +57,27 @@ export async function loginUser(data) {
     if (!user) {
       throw new Error("User not found!!");
     }
-    const isMatch = comparePassword(password, user.password);
+    const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
       throw new Error("Invalid Password");
     }
     console.log(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
     user.password = undefined;
-    return user;
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export function refreshAccessToken(refresh) {
+  try {
+    const decoded = verifyRefreshToken(refresh);
+    const newAccessToken = generateAccessToken(decoded);
+    const newRefreshToken = generateRefreshToken(decoded);
+    return { newAccessToken, newRefreshToken };
   } catch (error) {
     throw error;
   }
