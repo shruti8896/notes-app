@@ -74,9 +74,9 @@ export async function loginUser(data) {
 
 export function refreshAccessToken(refresh) {
   try {
-    const decoded = verifyRefreshToken(refresh);
-    const newAccessToken = generateAccessToken(decoded);
-    const newRefreshToken = generateRefreshToken(decoded);
+    const decodedData = verifyRefreshToken(refresh);
+    const newAccessToken = generateAccessToken(decodedData);
+    const newRefreshToken = generateRefreshToken(decodedData);
     return { newAccessToken, newRefreshToken };
   } catch (error) {
     throw error;

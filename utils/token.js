@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export function generateAccessToken(user) {
   const accessToken = jwt.sign(
-    { userId: user._id },//add type of the token
+    { userId: user._id, type: "access" }, //add type of the token
     process.env.JWT_Access_SECRET_KEY,
     {
       expiresIn: process.env.JWT_Access_Token_Expiry,
@@ -14,7 +14,9 @@ export function generateAccessToken(user) {
 
 export function generateRefreshToken(user) {
   const refreshToken = jwt.sign(
-    { userId: user._id },//add the type of the token
+    { userId: user._id, type: "refresh" },
+    //add the type of the token
+
     process.env.JWT_Refresh_SECRET_KEY,
     {
       expiresIn: process.env.JWT_Refresh_Token_Expiry,
@@ -37,9 +39,13 @@ export function verifyAccessToken(token) {
 export function verifyRefreshToken(token) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_Refresh_SECRET_KEY);
+    console.log(decoded);
 
-    return decoded;
+    if (decoded.type === "refresh") {
+      return decoded;
+    } else throw new Error("Invalid refresh token");
   } catch (error) {
+    console.log(error)
     throw error;
   }
 }

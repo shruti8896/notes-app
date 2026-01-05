@@ -30,11 +30,13 @@ export async function loginController(req, res) {
 export async function accessTokenRefreshController(req, res) {
   try {
     const { refreshToken } = req.body;
+    console.log("------------------------------------------------------------");
+    console.log(refreshToken);
     if (!refreshToken)
-      return res
-        .status(400)
-        .json({ message: "Invalid refresh token " });
-        //validate if the token is refresh token or not 
+      return res.status(400).json({ message: "Invalid refresh token " });
+    //validate if the token is refresh token or not
+    
+   
     const newToken = refreshAccessToken(refreshToken);
     return res.status(200).json({
       accessToken: newToken.newAccessToken,

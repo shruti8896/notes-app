@@ -1,12 +1,29 @@
 import mongoose from "mongoose";
 import KnowledgeItem from "./knowledgeItem.js";
 
-const userSchema = mongoose.Schema(
+const refreshSchema = new mongoose.Schema(
+  {
+    token: {
+      type: String,
+      required: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     password: { type: String, required: true, select: false },
+    refreshTokens: [refreshSchema],
   },
   {
     timestamps: true,
