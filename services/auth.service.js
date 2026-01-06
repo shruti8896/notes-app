@@ -64,6 +64,25 @@ export async function loginUser(data) {
     console.log(user);
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
+
+    const hashedToken = await hashPassword(refreshToken);
+
+    const status = await User.findByIdAndUpdate(
+      user.id,
+      {
+        $push: {
+          refreshTokens: {
+            token: hashedToken,
+            isActive: true,
+          },
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    console.log(status);
     user.password = undefined;
 
     return { accessToken, refreshToken };
@@ -72,12 +91,73 @@ export async function loginUser(data) {
   }
 }
 
-export function refreshAccessToken(refresh) {
+export async function refreshAccessToken(refresh) {
   try {
     const decodedData = verifyRefreshToken(refresh);
-    const newAccessToken = generateAccessToken(decodedData);
-    const newRefreshToken = generateRefreshToken(decodedData);
-    return { newAccessToken, newRefreshToken };
+    console.log("decoded data");
+    console.log(decodedData.userId);
+    const user = await User.findById(decodedData.userId).select(
+      "refreshTokens"
+    );
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    console.log(
+      "-----------------------fetching all the refresh tokens stored in db"
+    );
+    console.log(user);
+    console.log("-------------------------------------------------------");
+    let activeToken = null;
+    for (const token of user.refreshTokens) {
+      if (!token.isActive) continue;
+      const tokenMatch = await comparePassword(refresh, token.token);
+      if (tokenMatch) {
+        activeToken = token;
+        break;
+      }
+    }
+
+    console.log("------------------active tokens");
+    console.log(activeToken);
+    if (!activeToken) {
+      throw new Error("Invalid or reused refresh token");
+    }
+    const hashedOldToken = activeToken.token;
+
+    if (activeToken.isActive) {
+      const newAccessToken = generateAccessToken(user);
+      const newRefreshToken = generateRefreshToken(user);
+      //TODO: set is active false for the current token
+      const hashedNewToken = await hashPassword(newRefreshToken);
+      console.log(hashedNewToken);
+      console.log("updating the isActive status as false");
+      const result = await User.updateOne(
+        {
+          _id: user._id,
+          "refreshTokens.token": hashedOldToken,
+          "refreshTokens.isActive": true,
+        },
+        {
+          $set: {
+            "refreshTokens.$.isActive": false,
+          },
+        }
+      );
+
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $push: {
+            refreshTokens: {
+              token: hashedNewToken,
+              isActive: true,
+            },
+          },
+        }
+      );
+      return { newAccessToken, newRefreshToken };
+    } else throw new Error("Session Expired!!");
   } catch (error) {
     throw error;
   }

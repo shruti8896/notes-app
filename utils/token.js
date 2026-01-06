@@ -39,13 +39,14 @@ export function verifyAccessToken(token) {
 export function verifyRefreshToken(token) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_Refresh_SECRET_KEY);
+    console.log("decoded data from verify function");
     console.log(decoded);
 
     if (decoded.type === "refresh") {
       return decoded;
     } else throw new Error("Invalid refresh token");
   } catch (error) {
-    console.log(error)
+    console.log(error);
     throw error;
   }
 }

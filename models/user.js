@@ -12,7 +12,7 @@ const refreshSchema = new mongoose.Schema(
       default: true,
     },
   },
-  {
+  {   
     timestamps: true,
   }
 );

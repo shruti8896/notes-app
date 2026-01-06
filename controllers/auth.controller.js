@@ -35,9 +35,8 @@ export async function accessTokenRefreshController(req, res) {
     if (!refreshToken)
       return res.status(400).json({ message: "Invalid refresh token " });
     //validate if the token is refresh token or not
-    
-   
-    const newToken = refreshAccessToken(refreshToken);
+
+    const newToken = await refreshAccessToken(refreshToken);
     return res.status(200).json({
       accessToken: newToken.newAccessToken,
       refreshToken: newToken.newRefreshToken,
